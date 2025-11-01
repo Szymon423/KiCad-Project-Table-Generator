@@ -1,5 +1,7 @@
 <div align="center">
+  
 # 🖼️ KiCad Project Table Generator
+
 </div>
 An application for generating professional descriptive tables for PCB projects. Creates images with logos and labels that can be placed on printed circuit boards for better appearance and functionality.
 
