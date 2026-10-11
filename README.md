@@ -1,92 +1,157 @@
 <div align="center">
-  
-# 🖼️ KiCad Project Table Generator
+
+# KiCad Project Table Generator
+
+[![AI-assisted, human-guided](https://img.shields.io/badge/AI--assisted-human--guided-8e44ec)](#how-this-was-made)
+[![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-d97757)](https://claude.com/claude-code)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178c6)
+![Tauri 2](https://img.shields.io/badge/Tauri-2-24c8db)
+![Platform: Linux and web](https://img.shields.io/badge/platform-Linux%20%7C%20web-2fb344)
+[![License: MIT](https://img.shields.io/badge/license-MIT-6b7078)](LICENSE)
 
 </div>
-An application for generating professional descriptive tables for PCB projects. Creates images with logos and labels that can be placed on printed circuit boards for better appearance and functionality.
 
-![Application Screenshot](screenshots/00.png)
+Makes the small table you put on a PCB to say what the board is: a logo next to a few rows of text, such as the project name, the author, the date and the revision. You set the sizes in millimetres, copy the table, and paste it into the KiCad PCB editor as a footprint. It can also be exported as a PNG or SVG.
 
-## ✨ Features
+**[Open it in your browser](https://szymon423.github.io/KiCad-Project-Table-Generator/)**. Nothing is installed, and your logo and text stay on your computer. The same app can also be built as a desktop program.
 
-- 📊 **Dynamic table creation** - Add any number of rows with descriptions
-- 🎨 **Configurable parameters** - Adjust font size and line thickness to your needs
-- 🖼️ **Logo integration** - Automatic scaling and positioning of company/project logo
-- 👁️ **Live preview** - See the result before saving
-- 💾 **Export to PNG/JPEG** - Save in popular graphic formats
+<p align="center">
+  <img src="example/app.png" alt="The desktop app: a settings panel on the left with rows, logo, text, table and output settings, and a live preview of the table on the right" width="820">
+</p>
 
+## What you get
 
-## 🚀 Quick Start
+<p align="center">
+  <img src="example/table.png" alt="A generated table: a logo on the left and four rows of text on the right" width="49%">
+  <img src="example/table-inverted.png" alt="The same table inverted, with centred text" width="49%">
+</p>
+<p align="center">
+  <sub>Two exports of the same rows, normal and inverted. The editable project is in <a href="example/example.ktable"><code>example/example.ktable</code></a>, and the SVG in <a href="example/table.svg"><code>example/table.svg</code></a>.</sub>
+</p>
 
-### Requirements
+## What it can do
 
-- Python 3.8 or newer
-- Operating System: Windows / Linux / macOS
+- **Straight into KiCad**: copy the table as a footprint and paste it into the PCB editor, at the right size, with no Image Converter step. It can also be saved as a `.kicad_mod` file.
+- **Live preview**: the table redraws as you type.
+- **Sizes in millimetres**: letter height, line width and padding are set in mm, and the size of the finished table is shown in the corner.
+- **Fixed height**: instead of adding the lengths up, set how tall the whole table must be and everything is scaled to fit. The width follows from the text.
+- **No outer margin**: the table's outer lines are the edges of the image, so the width and height you give it in KiCad are the size of the table itself.
+- **Logo**: choose, drop or paste a PNG, JPG or SVG. Transparent or white edges of the logo file are trimmed, so one padding value sets the space around it.
+- **Rows**: add, remove and reorder as many as you need.
+- **Fonts**: DejaVu Sans and Liberation Sans are built in, and you can load your own TTF, OTF or WOFF file.
+- **Export**: PNG at the resolution you choose (the DPI is written into the file), SVG, or straight to the clipboard. Black on white, or inverted.
+- **Editable projects**: save the table as a `.ktable` file with the logo and font inside it, and open it later to bump the revision and export again.
+- **Remembers your work**: the rows, logo and settings are still there the next time you open the app.
 
-### Installation
+## Using the table in KiCad
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+1. Choose **Copy as KiCad footprint** in the output menu, or press `Ctrl+K`.
+2. Switch to the KiCad PCB editor and paste with `Ctrl+V`.
+3. Place the table. It arrives on the front silkscreen at the size shown in the app; press `F` in KiCad to flip it to the back, which also mirrors it.
 
-# Make the script executable (Linux/macOS)
-chmod +x ./run.sh
+**Export as KiCad footprint** saves the same thing as a `.kicad_mod` file for a footprint library.
 
-# Run the application
-./run.sh
+<p align="center">
+  <img src="example/kicad.png" alt="A generated table placed as a footprint in the KiCad PCB editor" width="49%">
+  <img src="example/pcb.png" alt="The same table on the board in KiCad's 3D viewer" width="49%">
+</p>
+
+The footprint is traced from the finished picture, so it holds exactly what the preview shows, logo and inverted look included. Its outlines follow the picture to within about 0.01 mm.
+
+The older route still works: export a PNG, open it in KiCad's **Image Converter** and set the output size to the millimetres shown in the app.
+
+## Keyboard shortcuts
+
+| Key | Action |
+| --- | --- |
+| `Enter` | Add a row below the current one |
+| `Backspace` in an empty row | Remove that row |
+| `Alt+Up` / `Alt+Down` | Move the current row up or down |
+| `Ctrl+V` | Paste an image as the logo |
+| `Ctrl+K` | Copy the table as a KiCad footprint |
+| `Ctrl+C` | Copy the table to the clipboard as an image |
+| `Ctrl+E` | Export as PNG |
+| `Ctrl+S` | Save the editable project |
+| `Ctrl+O` | Open a saved project |
+
+Copying, every export format and saving are also in the output menu (the download icon above the preview). A project, a logo or a font can be dropped onto the window as well.
+
+## How this was made
+
+This app is vibe-coded, and this page does not hide it. The code was written by an AI assistant ([Claude Code](https://claude.com/claude-code)) and directed by a human: Szymon decided what the app should do, tried it, and sent back what to change.
+
+What that means if you use it:
+
+- It is a personal tool that works for its author, not a reviewed or audited product.
+- There are no automated tests. Output was checked by rendering sample tables in a headless browser, comparing the PNG and SVG results, and rendering the footprints with `kicad-cli`.
+- The desktop app has only been built on Linux (Fedora). Windows and macOS should work, since Tauri supports them, but nobody has tried.
+- It replaces an earlier Python version of the same tool, which is still in the git history.
+
+Bug reports are welcome.
+
+## Running it yourself
+
+You need [Node.js](https://nodejs.org) with npm.
+
+```sh
+npm install
+npm run dev        # the app at http://localhost:1420, with hot reload
+npm run build      # type-check and production build into dist/
+npm run build:web  # the build that GitHub Pages serves, into dist-web/
 ```
 
-## 🎯 Usage Instructions
+Every push to `main` publishes the app to GitHub Pages through `.github/workflows/pages.yml`.
 
-### 1. Adding rows with descriptions
+### Desktop app
 
-- Click the **"Add Row"** button to add a new row to the table
-- Enter text in the field (e.g., "Project Name", "Production Date", "Author", etc.)
-- Use the 🗑️ button to remove unnecessary rows
-- You can add any number of rows
+The desktop app is the same code in a [Tauri 2](https://tauri.app) window. On top of Node.js it needs [Rust](https://rustup.rs) and the Tauri system packages for your platform; see the [Tauri prerequisites](https://tauri.app/start/prerequisites/).
 
-### 2. Selecting a logo
+```sh
+npm run tauri dev     # run the desktop app with hot reload
+npm run tauri build   # build the program and its installers
+```
 
-- Click **"Select Logo"**
-- Choose a PNG/JPG file with your company or project logo
-- The logo will be automatically scaled to match the table height
-- If you have a file at `assets/images/logo.png`, it will be loaded automatically
+The program ends up in `src-tauri/target/release/` and the packages in `src-tauri/target/release/bundle/`. On Fedora, install the RPM:
 
-### 3. Adjusting parameters
+```sh
+sudo dnf install "src-tauri/target/release/bundle/rpm/KiCad Project Table Generator-0.1.0-1.x86_64.rpm"
+```
 
-**Line Thickness (5-30 px)**
-- Controls the thickness of the table border
-- Recommended: 10-15 px for standard PCBs
+It then appears in the application menu and starts with `kicad-table-generator` from a terminal. In the desktop app, saving and opening go through the system's file dialogs.
 
-**Font Size (50-300 px)**
-- Adjust to the size of your board
-- Recommended: 100-150 px for small PCBs, 200-300 px for larger ones
+## Project layout
 
-### 4. Generating and saving
+```
+index.html       Panel and toolbar markup
+src/model.ts     The document: rows, logo and settings, in millimetres
+src/layout.ts    Turns the document into exact pixel geometry
+src/render.ts    Draws that geometry on a canvas
+src/export.ts    PNG with DPI, SVG, clipboard, file name
+src/footprint.ts KiCad footprint: traces the rendered table into polygons
+src/project.ts   Editable .ktable project files
+src/logo.ts      Decodes a logo and finds its empty edges
+src/fonts.ts     Built-in fonts, font parsing, text width and letter outlines
+src/files.ts     Save and open dialogs and the clipboard, for desktop and browser
+src/storage.ts   Remembers the last session
+src/rows.ts      The editable list of rows
+src/main.ts      Wires the form, preview and output together
+src-tauri/       Desktop shell: window, plugins, bundling config, icons
+public/          Built-in fonts with their licenses, sample logo, icon
+example/         Screenshots and sample output used on this page
+.github/         Workflow that publishes the app
+```
 
-1. Click **"Generate"** to see the preview
-2. Check if everything looks good
-3. Click **"Save"** and choose a location
-4. Select format: PNG (recommended) or JPEG
+## Notes
 
-## 🛠️ Project Development
+- Text is laid out left to right with kerning. Ligatures and right-to-left scripts are not supported.
+- A `.ktable` file is JSON with the logo and any loaded font embedded in it.
+- In the SVG the logo is an embedded picture, and an inverted SVG is a black rectangle with white shapes on top. For KiCad, use the footprint instead of importing the SVG.
 
-### Planned features
+## Planned
 
-- [ ] Direct export to KiCad footprint
-- [ ] Templates
-- [ ] Export to SVG
-- [ ] Text instead of logo
+- Installers for Windows and macOS
+- SVG logos kept as vector outlines in the SVG export
 
-## 📸 Gallery
+## License
 
-### Example of generated table
-![Example 1](test.png)
-
-### Usage in KiCad
-![Example 2](screenshots/01.png)
-
-### Usage on PCB
-![Example 3](screenshots/02.png)
-
----
+Released under the [MIT License](LICENSE). The bundled fonts in `public/fonts/` come under their own free licenses, included next to them: DejaVu Sans under the [Bitstream Vera and DejaVu license](public/fonts/DejaVu-LICENSE.txt), Liberation Sans under the [SIL Open Font License](public/fonts/Liberation-LICENSE.txt).

@@ -1,21 +1,38 @@
-# Wirtualne środowisko
-venv/
-env/
+# Logs
+logs
+*.log
+npm-debug.log*
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
+node_modules
+dist
+dist-web
+dist-ssr
+*.local
 
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# OS
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
+*.sw?
 
-# My company logo
+# Tauri
+src-tauri/target
+src-tauri/gen/schemas
+
+# Environment and build caches
+.env
+.env.*
+*.tsbuildinfo
+
+# Linux/KDE leftovers
+*~
+.directory
+
+# Claude Code: machine-local settings
+.claude/settings.local.json
+
+# Private logos and tables generated with them
+/assets/
 logo_m4t.png
+/table-*.png

@@ -1,0 +1,423 @@
+:root {
+  --bg: #e9eaed;
+  --fg: #1d1f23;
+  --muted: #6b7078;
+  --panel: #ffffff;
+  --border: #cfd2d8;
+  --accent: #2f6fed;
+  --panel-width: 320px;
+
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: var(--fg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1c1f;
+    --fg: #e6e7ea;
+    --muted: #8d929b;
+    --panel: #2a2c31;
+    --border: #3d4047;
+    --accent: #6c9bff;
+  }
+}
+
+/* Without this, any element given its own `display` ignores the hidden attribute. */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: var(--fg);
+}
+
+/* --- settings panel --- */
+
+#panel {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--panel-width);
+  box-sizing: border-box;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: var(--panel);
+  user-select: none;
+}
+
+#panel section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+#panel section:last-child {
+  border-bottom: 0;
+}
+
+#panel h2 {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+#panel button {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+#panel button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+}
+
+#panel button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+#panel button.wide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 30px;
+  border-style: dashed;
+  color: var(--muted);
+}
+
+#panel input[type='text'],
+#panel input[type='number'],
+#panel select {
+  height: 28px;
+  box-sizing: border-box;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+#panel input:focus-visible,
+#panel select:focus-visible,
+#panel button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* Only a value outside its range is wrong; one between two arrow steps is fine. */
+#panel input:out-of-range {
+  border-color: #e5383b;
+}
+
+#rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  gap: 4px;
+}
+
+.row input {
+  flex: 1;
+  min-width: 0;
+}
+
+#panel .row button,
+#panel #logo-remove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  padding: 0;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.field > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.field input[type='number'] {
+  width: 72px;
+  font-variant-numeric: tabular-nums;
+}
+
+.field select {
+  width: 148px;
+}
+
+.field input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+#logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Logos are often white or black on transparent, so show them on a mid grey. */
+#logo-thumb {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #9a9da3 center / contain no-repeat;
+}
+
+#logo-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.hint {
+  margin: -4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.segmented {
+  gap: 0 !important;
+}
+
+#panel .segmented button {
+  border-radius: 0;
+  color: var(--fg);
+}
+
+#panel .segmented button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+#panel .segmented button:last-child {
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+#panel .segmented button.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+/* --- preview --- */
+
+#preview {
+  position: fixed;
+  inset: 0 0 0 var(--panel-width);
+  display: grid;
+  place-items: center;
+}
+
+#canvas {
+  box-shadow: 0 2px 14px rgb(0 0 0 / 0.25);
+}
+
+body.drop-target #preview {
+  outline: 2px dashed var(--accent);
+  outline-offset: -8px;
+}
+
+#toolbar {
+  position: fixed;
+  top: 12px;
+  left: calc(var(--panel-width) + (100% - var(--panel-width)) / 2);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.15);
+}
+
+#toolbar button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+}
+
+#toolbar button:hover {
+  background: color-mix(in srgb, var(--fg) 10%, transparent);
+}
+
+#toolbar hr {
+  width: 1px;
+  margin: 4px 3px;
+  border: 0;
+  background: var(--border);
+}
+
+/* A toolbar button that drops a list of actions down on hover (or on click, for touch). */
+.menu {
+  position: relative;
+}
+
+.menu-items {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
+  /* Padding, not margin, bridges the gap so the pointer never leaves the menu on its way down. */
+  padding-top: 10px;
+}
+
+.menu:hover:not(.dismissed) .menu-items,
+.menu.open .menu-items {
+  display: flex;
+}
+
+.menu-items::before {
+  content: '';
+  position: absolute;
+  inset: 10px 0 0;
+  z-index: -1;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+}
+
+#toolbar .menu-items button {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  width: auto;
+  height: 30px;
+  margin: 0 4px;
+  padding: 0 10px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+#toolbar .menu-items button:first-child {
+  margin-top: 4px;
+}
+
+#toolbar .menu-items button:last-child {
+  margin-bottom: 4px;
+}
+
+#toolbar .menu-items hr {
+  width: auto;
+  height: 1px;
+  margin: 4px 0;
+}
+
+.menu-items kbd {
+  color: var(--muted);
+  font: inherit;
+}
+
+#status,
+#size {
+  position: fixed;
+  bottom: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+#size {
+  right: 12px;
+  color: var(--muted);
+}
+
+#status {
+  left: calc(var(--panel-width) + (100% - var(--panel-width)) / 2);
+  transform: translateX(-50%);
+}
+
+dialog.choice {
+  max-width: 420px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--fg);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.35);
+  user-select: none;
+}
+
+dialog.choice::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+
+dialog.choice p {
+  margin: 0 0 16px;
+  font-size: 15px;
+}
+
+dialog.choice div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+dialog.choice button {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: none;
+  cursor: pointer;
+}
+
+dialog.choice button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
