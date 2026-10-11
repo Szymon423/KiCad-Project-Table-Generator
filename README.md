@@ -13,7 +13,9 @@
 
 Makes the small table you put on a PCB to say what the board is: a logo next to a few rows of text, such as the project name, the author, the date and the revision. You set the sizes in millimetres, copy the table, and paste it into the KiCad PCB editor as a footprint. It can also be exported as a PNG or SVG.
 
-**[Open it in your browser](https://szymon423.github.io/KiCad-Project-Table-Generator/)**. Nothing is installed, and your logo and text stay on your computer. The same app can also be built as a desktop program.
+**[Open it in your browser](https://szymon423.github.io/KiCad-Project-Table-Generator/app/)** · [Website](https://szymon423.github.io/KiCad-Project-Table-Generator/)
+
+Nothing is installed, and your logo and text stay on your computer. The same app can also be built as a desktop program.
 
 <p align="center">
   <img src="example/app.png" alt="The desktop app: a settings panel on the left with rows, logo, text, table and output settings, and a live preview of the table on the right" width="820">
@@ -97,10 +99,10 @@ You need [Node.js](https://nodejs.org) with npm.
 npm install
 npm run dev        # the app at http://localhost:1420, with hot reload
 npm run build      # type-check and production build into dist/
-npm run build:web  # the build that GitHub Pages serves, into dist-web/
+npm run build:web  # the website into dist-web/: landing page at the root, the app under app/
 ```
 
-Every push to `main` publishes the app to GitHub Pages through `.github/workflows/pages.yml`.
+Every push to `main` publishes the website to GitHub Pages through `.github/workflows/pages.yml`: the landing page from `site/` at the root and the app under `app/`.
 
 ### Desktop app
 
@@ -117,7 +119,7 @@ The program ends up in `src-tauri/target/release/` and the packages in `src-taur
 sudo dnf install "src-tauri/target/release/bundle/rpm/KiCad Project Table Generator-0.1.0-1.x86_64.rpm"
 ```
 
-It then appears in the application menu and starts with `kicad-table-generator` from a terminal. In the desktop app, saving and opening go through the system's file dialogs.
+It then appears in the application menu and starts with `kicad-project-table-generator` from a terminal. In the desktop app, saving and opening go through the system's file dialogs.
 
 ## Project layout
 
@@ -137,8 +139,10 @@ src/rows.ts      The editable list of rows
 src/main.ts      Wires the form, preview and output together
 src-tauri/       Desktop shell: window, plugins, bundling config, icons
 public/          Built-in fonts with their licenses, sample logo, icon
-example/         Screenshots and sample output used on this page
-.github/         Workflow that publishes the app
+site/            Landing page of the website
+scripts/         Build helper that assembles the website
+example/         Screenshots and sample output used on this page and on the website
+.github/         Workflow that publishes the website
 ```
 
 ## Notes

@@ -2,13 +2,13 @@
 
 A browser and desktop app that makes a title-block style table for a PCB: a logo next to rows of text, sized in millimetres, copied into KiCad as a footprint or exported as PNG or SVG. It was rewritten on 2026-10-11 from a Python/CustomTkinter script (still in git history) into the same shape as Szymon's other app, Kreskit (`~/Projects/Personal/36-Kreskit`), which is the reference for stack, look and conventions.
 
-The owner is Szymon (GitHub `Szymon423`). The repository is `Szymon423/KiCad-Project-Table-Generator`, and the app is published at https://szymon423.github.io/KiCad-Project-Table-Generator/.
+The owner is Szymon (GitHub `Szymon423`). The repository is `Szymon423/KiCad-Project-Table-Generator`, and the website is at https://szymon423.github.io/KiCad-Project-Table-Generator/ with the app under `app/`.
 
 ## Stack
 
 - Vanilla TypeScript + Vite. No UI framework, no canvas library.
 - `opentype.js` parses fonts and gives letter outlines. It is the only runtime dependency.
-- GitHub Pages serves the web build, deployed by `.github/workflows/pages.yml` on every push to `main`.
+- **Website**: a hand-written landing page (`site/index.html`, inline CSS, no build step) plus the web build of the app under `app/`, put together by `scripts/assemble-site.mjs` and deployed by `.github/workflows/pages.yml` on every push to `main`. Its screenshots are copied from `example/`. Szymon asked for it to look different from Kreskit's landing page; it is styled as a circuit board and a data sheet.
 - **Desktop shell**: Tauri 2 (Rust) in `src-tauri/`, copied from Kreskit, including the NVIDIA/Wayland DMABUF workaround in `main.rs` (do not remove it). Anything desktop-only sits behind `isTauri` in `src/files.ts` and has a browser fallback; after a change to saving, opening or the clipboard, think about both targets.
 
 ## Commands
@@ -17,7 +17,7 @@ The owner is Szymon (GitHub `Szymon423`). The repository is `Szymon423/KiCad-Pro
 npm install        # once per machine
 npm run dev        # the app at http://localhost:1420
 npm run build      # tsc type-check + production build
-npm run build:web  # the Pages build, relative base, into dist-web/
+npm run build:web  # the website into dist-web/: landing page at the root, the app under app/
 npm run tauri dev  # the desktop app with hot reload
 npm run tauri build   # installers, into src-tauri/target/release/bundle/
 (cd src-tauri && cargo check)   # check the Rust shell
@@ -66,7 +66,7 @@ When a change affects interaction, say plainly that it is untested in the window
 - Commit and push only when asked. Never force-push.
 - `assets/images/logo_m4t.png` and `table-*.png` in the root are Szymon's private files with a company logo. They are git-ignored; never commit, move or delete them.
 - `example/app.png` is shown in the README. When the look of the app changes, retake it.
-- Keep `README.md` in step with features and shortcuts.
+- Keep `README.md` in step with features and shortcuts, and the data sheet in `site/index.html` if it no longer describes the app.
 
 ## Code style
 
