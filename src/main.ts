@@ -5,7 +5,7 @@ import { FONTS, loadBundledFont, parseFont, textPath, textWidth } from './fonts'
 import { footprintText } from './footprint'
 import { layoutTable, type Layout } from './layout'
 import { decodeLogo } from './logo'
-import { CUSTOM_FONT, DPI_MAX, DPI_MIN, defaultDoc, type Doc, type StoredFile } from './model'
+import { CUSTOM_FONT, DPI_MAX, DPI_MIN, ROTATIONS, defaultDoc, type Doc, type StoredFile } from './model'
 import { PROJECT_EXTENSION, isProjectFile, parseProject, serializeProject } from './project'
 import { logoPicture, renderTable, type Resources } from './render'
 import { rowList } from './rows'
@@ -121,7 +121,17 @@ function say(message: string): void {
 function logoAspect(): number | null {
   if (!resources.logo) return null
   const { image, content } = resources.logo
-  return doc.trimLogo ? content.w / content.h : image.naturalWidth / image.naturalHeight
+  const aspect = doc.trimLogo ? content.w / content.h : image.naturalWidth / image.naturalHeight
+  // A quarter turn swaps width and height.
+  return doc.logoRotation === 90 || doc.logoRotation === 270 ? 1 / aspect : aspect
+}
+
+/** A logo the user just brought in starts upright and uninverted, whatever the last one was. */
+async function newLogo(file: File): Promise<void> {
+  doc.logoRotation = 0
+  doc.invertLogo = false
+  await setLogo(await stored(file))
+  showForm()
 }
 
 async function setLogo(file: StoredFile | null): Promise<void> {
@@ -141,6 +151,13 @@ function showLogo(): void {
   $('#logo-thumb').style.backgroundImage = resources.logo ? `url("${resources.logo.image.src}")` : ''
   $('#logo-name').textContent = doc.logo?.name ?? 'No logo'
   $<HTMLButtonElement>('#logo-remove').hidden = !doc.logo
+  const thumb = $('#logo-thumb')
+  thumb.style.transform = `rotate(${doc.logoRotation}deg)`
+  thumb.style.filter = doc.invertLogo ? 'invert(1)' : ''
+  $('#logo-rotation').textContent = `${doc.logoRotation}°`
+  for (const control of document.querySelectorAll<HTMLButtonElement | HTMLInputElement>('.logo-only')) {
+    control.disabled = !doc.logo
+  }
 }
 
 const stored = async (file: File): Promise<StoredFile> => ({
@@ -213,6 +230,7 @@ function showForm(): void {
   for (const input of numberInputs) input.value = String(doc[input.dataset.field as NumberField])
   $<HTMLInputElement>('#invert').checked = doc.invert
   $<HTMLInputElement>('#trim-logo').checked = doc.trimLogo
+  $<HTMLInputElement>('#invert-logo').checked = doc.invertLogo
   for (const button of document.querySelectorAll<HTMLElement>('#size-by button')) {
     button.classList.toggle('active', button.dataset.sizeBy === doc.sizeBy)
   }
@@ -239,12 +257,22 @@ for (const input of numberInputs) {
 
 $('#add-row').addEventListener('click', () => rows.add())
 
-for (const [selector, field] of [['#invert', 'invert'], ['#trim-logo', 'trimLogo']] as const) {
+for (const [selector, field] of [
+  ['#invert', 'invert'],
+  ['#trim-logo', 'trimLogo'],
+  ['#invert-logo', 'invertLogo'],
+] as const) {
   $<HTMLInputElement>(selector).addEventListener('change', (event) => {
     doc[field] = (event.target as HTMLInputElement).checked
     refresh()
   })
 }
+
+$('#logo-rotate').addEventListener('click', () => {
+  doc.logoRotation = ROTATIONS[(ROTATIONS.indexOf(doc.logoRotation) + 1) % ROTATIONS.length]
+  showLogo()
+  refresh()
+})
 
 $('#size-by').addEventListener('click', (event) => {
   const sizeBy = (event.target as HTMLElement).closest<HTMLElement>('[data-size-by]')?.dataset.sizeBy
@@ -283,7 +311,7 @@ const FILE_TYPES = {
 
 $('#logo-pick').addEventListener('click', async () => {
   const file = await pickFile(FILE_TYPES.logo)
-  if (file) await setLogo(await stored(file))
+  if (file) await newLogo(file)
 })
 $('#font-pick').addEventListener('click', async () => {
   const file = await pickFile(FILE_TYPES.font)
@@ -470,7 +498,7 @@ const FONT_FILE = /\.(ttf|otf|woff)$/i
 async function take(file: File): Promise<void> {
   if (isProjectFile(file.name)) await openProject(file)
   else if (FONT_FILE.test(file.name)) await setCustomFont(await stored(file))
-  else if (file.type.startsWith('image/')) await setLogo(await stored(file))
+  else if (file.type.startsWith('image/')) await newLogo(file)
   else say(`${file.name} is not a project, an image or a font`)
 }
 
@@ -512,6 +540,8 @@ function restore(saved: Partial<Doc>): Doc {
   merged.dpi = Math.min(DPI_MAX, Math.max(DPI_MIN, merged.dpi))
   merged.invert = merged.invert === true
   merged.trimLogo = merged.trimLogo !== false
+  merged.invertLogo = merged.invertLogo === true
+  if (!ROTATIONS.includes(merged.logoRotation)) merged.logoRotation = base.logoRotation
   if (merged.font === CUSTOM_FONT ? !merged.customFont : !FONTS.some((font) => font.id === merged.font)) {
     merged.font = base.font
   }

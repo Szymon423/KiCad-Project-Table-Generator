@@ -7,6 +7,11 @@ export interface StoredFile {
 
 export type Align = 'left' | 'center'
 
+/** Clockwise turn of the logo, in quarter turns of 90 degrees. */
+export type Rotation = 0 | 90 | 180 | 270
+
+export const ROTATIONS: Rotation[] = [0, 90, 180, 270]
+
 /** What decides the finished size: the lengths as set, or a fixed overall height. */
 export type SizeBy = 'settings' | 'height'
 
@@ -30,6 +35,9 @@ export interface Doc {
   logoPadding: number
   /** Cut away the transparent or white border the logo file comes with. */
   trimLogo: boolean
+  logoRotation: Rotation
+  /** Swap the logo's light and dark, on its own, before the rest of the table. */
+  invertLogo: boolean
   /** White on black instead of black on white. */
   invert: boolean
   sizeBy: SizeBy
@@ -56,6 +64,8 @@ export function defaultDoc(): Doc {
     padding: 0.5,
     logoPadding: 0,
     trimLogo: true,
+    logoRotation: 0,
+    invertLogo: false,
     invert: false,
     sizeBy: 'settings',
     height: 10,

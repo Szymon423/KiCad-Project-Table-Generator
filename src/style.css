@@ -199,6 +199,17 @@ select {
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #9a9da3 center / contain no-repeat;
+  transition: transform 0.15s;
+}
+
+#logo-rotate {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#logo-rotation {
+  font-variant-numeric: tabular-nums;
 }
 
 #logo-name {
