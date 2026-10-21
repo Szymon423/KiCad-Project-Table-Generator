@@ -41,6 +41,7 @@ There are no automated tests and no linter. `npm run build` and `cargo check` ar
 - Output formats are the KiCad footprint (clipboard and `.kicad_mod`), PNG, SVG and the editable project. PDF was built and removed at his request.
 - KiCad has no command-line image converter (`kicad-cli` cannot do it), which is why the app writes the footprint itself. Pasting `(footprint ...)` text into the PCB editor is how it gets there.
 - The Output section can fix the table's overall height (`sizeBy: 'height'`). All lengths are then scaled by one factor inside `layoutTable`, and the pixel density is nudged so the height is exact. He asked for height because the width depends on the text.
+- The logo cell holds either a picture or a typed word (`logoKind`). A word is outlined from its font into an SVG picture (`wordLogo` in `src/logo.ts`) and then treated exactly like an image logo, so rotation, inversion, padding and every output need nothing of their own. Both kinds are kept, so switching back loses neither.
 - One output menu in the toolbar, as in Kreskit, instead of separate buttons.
 - `Ctrl+S` saves the project and `Ctrl+E` exports the PNG.
 

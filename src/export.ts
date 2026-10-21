@@ -63,7 +63,7 @@ export interface Drawing {
 /** Two decimals of a pixel is far finer than anything that can be manufactured. */
 const n = (value: number) => String(Math.round(value * 100) / 100)
 
-function svgPath(commands: PathCommand[]): string {
+export function svgPath(commands: PathCommand[]): string {
   return commands
     .map((c) => {
       if (c.type === 'M' || c.type === 'L') return `${c.type}${n(c.x)} ${n(c.y)}`

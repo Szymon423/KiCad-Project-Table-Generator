@@ -202,6 +202,10 @@ select {
   transition: transform 0.15s;
 }
 
+#logo-text {
+  width: 148px;
+}
+
 #logo-rotate {
   display: flex;
   align-items: center;

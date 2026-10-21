@@ -12,6 +12,9 @@ export type Rotation = 0 | 90 | 180 | 270
 
 export const ROTATIONS: Rotation[] = [0, 90, 180, 270]
 
+/** What fills the logo cell: a picture from a file, or a typed word. */
+export type LogoKind = 'image' | 'text'
+
 /** What decides the finished size: the lengths as set, or a fixed overall height. */
 export type SizeBy = 'settings' | 'height'
 
@@ -33,6 +36,11 @@ export interface Doc {
   padding: number
   /** Space between the logo and the lines around it. */
   logoPadding: number
+  logoKind: LogoKind
+  /** The word shown in the logo cell when `logoKind` is `text`. */
+  logoText: string
+  /** Font of that word: a bundled font id, or `CUSTOM_FONT`. */
+  logoFont: string
   /** Cut away the transparent or white border the logo file comes with. */
   trimLogo: boolean
   logoRotation: Rotation
@@ -63,6 +71,9 @@ export function defaultDoc(): Doc {
     lineWidth: 0.2,
     padding: 0.5,
     logoPadding: 0,
+    logoKind: 'image',
+    logoText: 'LOGO',
+    logoFont: 'dejavu-sans-bold',
     trimLogo: true,
     logoRotation: 0,
     invertLogo: false,

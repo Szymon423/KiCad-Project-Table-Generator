@@ -1,3 +1,5 @@
+import { svgPath } from './export'
+import { textPath, type TableFont } from './fonts'
 import type { Rect } from './layout'
 import type { StoredFile } from './model'
 
@@ -14,6 +16,35 @@ const SCAN_SIDE = 1024
 const OPAQUE = 230
 /** At or above this brightness in every channel a pixel counts as blank paper. */
 const WHITE = 245
+
+/** The size a word is outlined at; the picture is SVG, so it stays sharp at any size. */
+const WORD_PX = 400
+
+/**
+ * A word set in `font` as a logo picture: black letters on transparent, cut tight around them.
+ * It then goes through everything an image logo does, rotation and inversion included. Null for
+ * an empty word.
+ */
+export async function wordLogo(font: TableFont, word: string): Promise<LogoImage | null> {
+  const commands = textPath(font, word.trim(), 0, 0, WORD_PX)
+  const points = commands.flatMap((c) => {
+    if (c.type === 'Z') return []
+    if (c.type === 'C') return [c.x1, c.y1, c.x2, c.y2, c.x, c.y]
+    if (c.type === 'Q') return [c.x1, c.y1, c.x, c.y]
+    return [c.x, c.y]
+  })
+  if (!points.length) return null
+  const xs = points.filter((_, index) => index % 2 === 0)
+  const ys = points.filter((_, index) => index % 2 === 1)
+  const left = Math.floor(Math.min(...xs))
+  const top = Math.floor(Math.min(...ys))
+  const width = Math.ceil(Math.max(...xs)) - left
+  const height = Math.ceil(Math.max(...ys)) - top
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${left} ${top} ${width} ${height}">` +
+    `<path fill="#000" d="${svgPath(commands)}"/></svg>`
+  return decodeLogo({ name: word, type: 'image/svg+xml', bytes: new TextEncoder().encode(svg).buffer })
+}
 
 export async function decodeLogo(file: StoredFile): Promise<LogoImage> {
   // An <img> rather than createImageBitmap, because it also takes SVG and scales it sharply.

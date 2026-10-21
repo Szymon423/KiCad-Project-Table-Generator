@@ -4,7 +4,7 @@ import { copyImage, copyText, pickFile, saveFile, type FileType } from './files'
 import { FONTS, loadBundledFont, parseFont, textPath, textWidth } from './fonts'
 import { footprintText } from './footprint'
 import { layoutTable, type Layout } from './layout'
-import { decodeLogo } from './logo'
+import { decodeLogo, wordLogo, type LogoImage } from './logo'
 import { CUSTOM_FONT, DPI_MAX, DPI_MIN, ROTATIONS, defaultDoc, type Doc, type StoredFile } from './model'
 import { PROJECT_EXTENSION, isProjectFile, parseProject, serializeProject } from './project'
 import { logoPicture, renderTable, type Resources } from './render'
@@ -18,6 +18,8 @@ const preview = $('#preview')
 const sizeLabel = $('#size')
 const status = $('#status')
 const fontSelect = $<HTMLSelectElement>('#font')
+const logoFontSelect = $<HTMLSelectElement>('#logo-font')
+const logoTextInput = $<HTMLInputElement>('#logo-text')
 const numberInputs = [...document.querySelectorAll<HTMLInputElement>('input[data-field]')]
 
 type NumberField = 'textHeight' | 'lineWidth' | 'padding' | 'logoPadding' | 'height' | 'dpi'
@@ -126,29 +128,72 @@ function logoAspect(): number | null {
   return doc.logoRotation === 90 || doc.logoRotation === 270 ? 1 / aspect : aspect
 }
 
-/** A logo the user just brought in starts upright and uninverted, whatever the last one was. */
+/**
+ * A picture the user just brought in replaces a word logo, and starts upright and uninverted,
+ * whatever the last logo was.
+ */
 async function newLogo(file: File): Promise<void> {
+  doc.logoKind = 'image'
   doc.logoRotation = 0
   doc.invertLogo = false
   await setLogo(await stored(file))
   showForm()
 }
 
-async function setLogo(file: StoredFile | null): Promise<void> {
-  try {
-    resources.logo = file ? await decodeLogo(file) : null
-    doc.logo = file
-  } catch {
-    say(`Could not read ${file?.name ?? 'the logo'} as an image`)
-    // A remembered logo that no longer decodes must not linger in the saved document.
-    if (!resources.logo) doc.logo = null
-  }
+/** Both kinds of logo are kept, so switching between picture and word loses neither. */
+let imageLogo: LogoImage | null = null
+let textLogo: LogoImage | null = null
+
+/** Put the logo of the chosen kind in the table and redraw. */
+function useLogo(): void {
+  resources.logo = doc.logoKind === 'text' ? textLogo : imageLogo
   showLogo()
   refresh()
 }
 
+async function setLogo(file: StoredFile | null): Promise<void> {
+  try {
+    imageLogo = file ? await decodeLogo(file) : null
+    doc.logo = file
+  } catch {
+    say(`Could not read ${file?.name ?? 'the logo'} as an image`)
+    // A remembered logo that no longer decodes must not linger in the saved document.
+    if (!imageLogo) doc.logo = null
+  }
+  useLogo()
+}
+
+/** Counts word logos being built, so a slow one cannot replace the result of a newer one. */
+let wordRequest = 0
+
+/** Set the typed word in its font and use it, if the logo is a word. */
+async function updateTextLogo(): Promise<void> {
+  const request = ++wordRequest
+  let font
+  try {
+    font =
+      doc.logoFont === CUSTOM_FONT && doc.customFont
+        ? parseFont(doc.customFont.bytes)
+        : await loadBundledFont(doc.logoFont)
+  } catch {
+    say('Could not load the logo font')
+    doc.logoFont = defaultDoc().logoFont
+    font = await loadBundledFont(doc.logoFont)
+  }
+  const logo = await wordLogo(font, doc.logoText)
+  if (request !== wordRequest) return
+  textLogo = logo
+  useLogo()
+}
+
 function showLogo(): void {
-  $('#logo-thumb').style.backgroundImage = resources.logo ? `url("${resources.logo.image.src}")` : ''
+  const word = doc.logoKind === 'text'
+  for (const part of document.querySelectorAll<HTMLElement>('.image-only')) part.hidden = word
+  for (const part of document.querySelectorAll<HTMLElement>('.text-only')) part.hidden = !word
+  for (const button of document.querySelectorAll<HTMLElement>('#logo-kind button')) {
+    button.classList.toggle('active', button.dataset.logoKind === doc.logoKind)
+  }
+  $('#logo-thumb').style.backgroundImage = imageLogo ? `url("${imageLogo.image.src}")` : ''
   $('#logo-name').textContent = doc.logo?.name ?? 'No logo'
   $<HTMLButtonElement>('#logo-remove').hidden = !doc.logo
   const thumb = $('#logo-thumb')
@@ -156,7 +201,7 @@ function showLogo(): void {
   thumb.style.filter = doc.invertLogo ? 'invert(1)' : ''
   $('#logo-rotation').textContent = `${doc.logoRotation}°`
   for (const control of document.querySelectorAll<HTMLButtonElement | HTMLInputElement>('.logo-only')) {
-    control.disabled = !doc.logo
+    control.disabled = !resources.logo
   }
 }
 
@@ -183,6 +228,8 @@ function showFonts(): void {
   if (doc.customFont) options.push(new Option(doc.customFont.name, CUSTOM_FONT))
   fontSelect.replaceChildren(...options)
   fontSelect.value = doc.font
+  logoFontSelect.replaceChildren(...options.map((option) => new Option(option.text, option.value)))
+  logoFontSelect.value = doc.logoFont
 }
 
 /** Load the font the document names and redraw. Falls back to the default font on failure. */
@@ -212,6 +259,8 @@ async function setCustomFont(file: StoredFile): Promise<void> {
   doc.customFont = file
   doc.font = CUSTOM_FONT
   await applyFont()
+  // A word logo set in the previous custom font now has to use the new one.
+  if (doc.logoFont === CUSTOM_FONT) await updateTextLogo()
 }
 
 // --- the form ---
@@ -231,6 +280,8 @@ function showForm(): void {
   $<HTMLInputElement>('#invert').checked = doc.invert
   $<HTMLInputElement>('#trim-logo').checked = doc.trimLogo
   $<HTMLInputElement>('#invert-logo').checked = doc.invertLogo
+  // Rewriting the field while it is being typed in would move the caret.
+  if (document.activeElement !== logoTextInput) logoTextInput.value = doc.logoText
   for (const button of document.querySelectorAll<HTMLElement>('#size-by button')) {
     button.classList.toggle('active', button.dataset.sizeBy === doc.sizeBy)
   }
@@ -293,6 +344,24 @@ $('#align').addEventListener('click', (event) => {
   doc.align = align
   showForm()
   refresh()
+})
+
+$('#logo-kind').addEventListener('click', (event) => {
+  const kind = (event.target as HTMLElement).closest<HTMLElement>('[data-logo-kind]')?.dataset.logoKind
+  if ((kind !== 'image' && kind !== 'text') || kind === doc.logoKind) return
+  doc.logoKind = kind
+  useLogo()
+  if (kind === 'text') logoTextInput.focus()
+})
+
+logoTextInput.addEventListener('input', () => {
+  doc.logoText = logoTextInput.value
+  void updateTextLogo()
+})
+
+logoFontSelect.addEventListener('change', () => {
+  doc.logoFont = logoFontSelect.value
+  void updateTextLogo()
 })
 
 fontSelect.addEventListener('change', () => {
@@ -431,7 +500,7 @@ function confirm(message: string, action: string): Promise<boolean> {
 async function load(next: Doc): Promise<void> {
   doc = next
   showForm()
-  await Promise.all([setLogo(doc.logo), applyFont()])
+  await Promise.all([setLogo(doc.logo), applyFont(), updateTextLogo()])
 }
 
 async function reset(): Promise<void> {
@@ -546,6 +615,11 @@ function restore(saved: Partial<Doc>): Doc {
     merged.font = base.font
   }
   if (merged.align !== 'left' && merged.align !== 'center') merged.align = base.align
+  if (merged.logoKind !== 'image' && merged.logoKind !== 'text') merged.logoKind = base.logoKind
+  if (typeof merged.logoText !== 'string') merged.logoText = base.logoText
+  if (merged.logoFont === CUSTOM_FONT ? !merged.customFont : !FONTS.some((font) => font.id === merged.logoFont)) {
+    merged.logoFont = base.logoFont
+  }
   if (merged.sizeBy !== 'settings' && merged.sizeBy !== 'height') merged.sizeBy = base.sizeBy
   return merged
 }

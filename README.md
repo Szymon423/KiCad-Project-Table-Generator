@@ -38,7 +38,7 @@ Nothing is installed, and your logo and text stay on your computer. The same app
 - **Sizes in millimetres**: letter height, line width and padding are set in mm, and the size of the finished table is shown in the corner.
 - **Fixed height**: instead of adding the lengths up, set how tall the whole table must be and everything is scaled to fit. The width follows from the text.
 - **No outer margin**: the table's outer lines are the edges of the image, so the width and height you give it in KiCad are the size of the table itself.
-- **Logo**: choose, drop or paste a PNG, JPG or SVG. Turn it in 90° steps or invert its colours on their own. Transparent or white edges of the logo file are trimmed, so one padding value sets the space around it.
+- **Logo**: choose, drop or paste a PNG, JPG or SVG, or type a word and pick its font instead. Turn it in 90° steps or invert its colours on their own. Transparent or white edges of the logo file are trimmed, so one padding value sets the space around it.
 - **Rows**: add, remove and reorder as many as you need.
 - **Fonts**: DejaVu Sans and Liberation Sans are built in, and you can load your own TTF, OTF or WOFF file.
 - **Export**: PNG at the resolution you choose (the DPI is written into the file), SVG, or straight to the clipboard. Black on white, or inverted.
